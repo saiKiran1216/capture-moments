@@ -1,0 +1,93 @@
+:root {
+    --primary: #bfff00;           /* Lime */
+    --primary-dark: #4b5e06;      /* Darker green for contrast */
+    --secondary: #f3f3f3;
+    --accent: #d4ff37;            /* Lighter lime accent */
+    --text: #222;
+    --text-light: #f3f3f3;
+    --card-bg: rgba(255,255,255,0.90);
+    --card-border: #c6e377;
+    --danger: #e74c3c;
+    --success: #27ae60;
+    --warning: #f39c12;
+}
+
+body {
+    background-image: url('../img/background.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* Example usage for flexible colors */
+.header, nav, footer {
+    background: var(--primary-dark);
+    color: var(--text-light);
+}
+
+.card, .container, .form-box {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.btn, button, input[type="submit"] {
+    background: var(--primary);
+    color: var(--text-light);
+    border: none;
+    border-radius: 4px;
+    padding: 0.5em 1.2em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn:hover, button:hover, input[type="submit"]:hover {
+    background: var(--accent);
+    color: var(--primary-dark);
+}
+
+.btn-outline-light {
+    color: var(--primary-dark) !important;
+    border-color: var(--primary) !important;
+    background: transparent !important;
+}
+.btn-outline-light:hover, .btn-outline-light:focus {
+    color: var(--primary-dark) !important;
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+
+input, textarea, select {
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    padding: 0.5em;
+    background: var(--secondary);
+    color: var(--text);
+}
+
+.alert-success {
+    background: var(--success);
+    color: var(--text-light);
+}
+.alert-danger {
+    background: var(--danger);
+    color: var(--text-light);
+}
+.alert-warning {
+    background: var(--warning);
+    color: var(--text-light);
+}
+
+/* Links */
+a {
+    color: var(--primary);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--accent);
+}
+
+/* You can continue to update other selectors to use these variables as needed */ 

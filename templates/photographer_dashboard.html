@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Photographer Dashboard - Capture Moments{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2>Welcome, {{ photographer.name }}</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Profile Info</h5>
+            <p><strong>Specialty:</strong> {{ photographer.specialty or 'Not set' }}</p>
+            <p><strong>Location:</strong> {{ photographer.location or 'Not set' }}</p>
+            <p><strong>Price per hour:</strong> ${{ photographer.price_per_hour }}</p>
+            <a href="{{ url_for('edit_profile') }}" class="btn btn-outline-primary btn-sm">Edit Profile</a>
+        </div>
+    </div>
+    <h4>Your Bookings</h4>
+    {% if bookings %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Client</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration (hrs)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking.user.username }}</td>
+                    <td>{{ booking.date }}</td>
+                    <td>{{ booking.time }}</td>
+                    <td>{{ booking.duration }}</td>
+                    <td>
+                        {{ booking.status|capitalize }}
+                        {% if booking.status == 'pending' %}
+                        <form action="{{ url_for('accept_booking', booking_id=booking.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-success btn-sm ms-1">Accept</button>
+                        </form>
+                        <form action="{{ url_for('reject_booking', booking_id=booking.id) }}" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm ms-1">Reject</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No bookings yet.</p>
+    {% endif %}
+</div>
+{% endblock %} 

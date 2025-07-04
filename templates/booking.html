@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Book Photographer - Capture Moments{% endblock %}
+{% block content %}
+<section class="container py-5">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="row g-0">
+                    <div class="col-md-4 text-center">
+                        <img src="{{ url_for('static', filename='img/avatar_default.png') }}" class="img-fluid rounded-circle m-3" alt="Photographer Avatar" width="100" height="100">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ photographer.name }}</h5>
+                            <p class="card-text">Specialty: {{ photographer.specialty }}</p>
+                            <p class="card-text">Location: {{ photographer.location }}</p>
+                            <p class="card-text">Price: ${{ photographer.price_per_hour }}/hr</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="time" class="form-label">Time</label>
+                    <input type="time" class="form-control" id="time" name="time" required>
+                </div>
+                <div class="mb-3">
+                    <label for="duration" class="form-label">Duration (hours)</label>
+                    <input type="number" class="form-control" id="duration" name="duration" min="1" max="12" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Book Now</button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Booking Summary</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Photographer:</strong> {{ photographer.name }}</li>
+                        <li><strong>Date:</strong> {{ booking.date if booking else '-' }}</li>
+                        <li><strong>Time:</strong> {{ booking.time if booking else '-' }}</li>
+                        <li><strong>Duration:</strong> {{ booking.duration if booking else '-' }} hours</li>
+                        <li><strong>Total Price:</strong> ${{ booking.total_price if booking else '-' }}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Please review your booking details before confirming.
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

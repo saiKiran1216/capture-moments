@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Client Dashboard - Capture Moments{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2>Welcome, {{ session['username'] }}</h2>
+    <h4>All Photographers</h4>
+    <div class="row mb-4">
+        {% for photographer in photographers %}
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <img src="{{ url_for('static', filename='img/avatar_default.png') }}" class="card-img-top" alt="Photographer Avatar">
+                <div class="card-body">
+                    <h5 class="card-title">{{ photographer.name }}</h5>
+                    <p class="card-text">Specialty: {{ photographer.specialty or 'Not set' }}</p>
+                    <p class="card-text">Location: {{ photographer.location or 'Not set' }}</p>
+                    <p class="card-text">Price: ${{ photographer.price_per_hour }}/hr</p>
+                    <a href="{{ url_for('profile', photographer_id=photographer.id) }}" class="btn btn-outline-primary btn-sm">View Profile</a>
+                    <a href="{{ url_for('booking', photographer_id=photographer.id) }}" class="btn btn-primary btn-sm ms-2">Book Now</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <p>No photographers found.</p>
+        </div>
+        {% endfor %}
+    </div>
+    <h4>Your Bookings</h4>
+    {% if my_bookings %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Photographer</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration (hrs)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in my_bookings %}
+                <tr>
+                    <td>{{ booking.photographer.name }}</td>
+                    <td>{{ booking.date }}</td>
+                    <td>{{ booking.time }}</td>
+                    <td>{{ booking.duration }}</td>
+                    <td>
+                        {% if booking.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif booking.status == 'accepted' %}
+                            <span class="badge bg-success">Accepted</span>
+                        {% elif booking.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                            {{ booking.status|capitalize }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No bookings yet.</p>
+    {% endif %}
+</div>
+{% endblock %} 

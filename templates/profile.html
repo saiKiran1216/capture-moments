@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Photographer Profile - Capture Moments{% endblock %}
+{% block content %}
+<section class="profile-banner mb-4">
+    <img src="{{ url_for('static', filename='img/profile_banner.jpg') }}" class="img-fluid w-100" alt="Profile Banner" style="max-height:300px; object-fit:cover;">
+</section>
+<section class="container">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-3 text-center">
+            <img src="{{ url_for('static', filename='img/avatar_default.png') }}" class="rounded-circle shadow" alt="Avatar" width="150" height="150">
+        </div>
+        <div class="col-md-9">
+            <h2>{{ photographer.name }}</h2>
+            <p class="mb-1"><strong>Specialty:</strong> {{ photographer.specialty }}</p>
+            <p class="mb-1"><strong>Location:</strong> {{ photographer.location }}</p>
+            <p class="mb-1"><strong>Price:</strong> ${{ photographer.price_per_hour }}/hr</p>
+            <p>{{ photographer.bio }}</p>
+            <a href="{{ url_for('booking', photographer_id=photographer.id) }}" class="btn btn-primary">Book Now</a>
+        </div>
+    </div>
+    <div class="row mb-5">
+        <div class="col-12">
+            <h4>Gallery</h4>
+            <div class="row g-2">
+                {% for image in photographer.gallery_images %}
+                <div class="col-6 col-md-3">
+                    <img src="{{ url_for('static', filename='img/' + image) }}" class="img-fluid rounded shadow-sm" alt="Gallery Image">
+                </div>
+                {% else %}
+                <div class="col-12">
+                    <p>No gallery images yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <h4>Reviews</h4>
+            {% for review in photographer.reviews %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="{{ url_for('static', filename='img/avatar_default.png') }}" class="rounded-circle me-2" width="40" height="40" alt="User Avatar">
+                        <strong>{{ review.user.username }}</strong>
+                        <span class="ms-3 text-warning">{% for i in range(review.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}</span>
+                    </div>
+                    <p class="mb-1">{{ review.comment }}</p>
+                    <small class="text-muted">{{ review.created_at.strftime('%b %d, %Y') }}</small>
+                </div>
+            </div>
+            {% else %}
+            <p>No reviews yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %} 

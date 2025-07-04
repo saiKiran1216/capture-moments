@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Home - Capture Moments{% endblock %}
+{% block content %}
+<section class="hero text-center py-5">
+    <h1 class="display-4">Capture Your Special Moments</h1>
+    <p class="lead">Book professional photographers for any occasion, anytime, anywhere.</p>
+    <a href="{{ url_for('show_photographers') }}" class="btn btn-primary btn-lg">Find Photographers</a>
+    <a href="{{ url_for('signup') }}" class="btn btn-outline-light btn-lg ms-2">Join as Photographer</a>
+</section>
+<section class="featured-photographers py-5">
+    <div class="container">
+        <h2 class="mb-4">Featured Photographers</h2>
+        <div class="row">
+            <!-- Placeholder for featured photographers -->
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img src="{{ url_for('static', filename='img/photographer1.jpg') }}" class="card-img-top" alt="Photographer 1">
+                    <div class="card-body">
+                        <h5 class="card-title">Photographer Name</h5>
+                        <p class="card-text">Specialty: Weddings</p>
+                        <a href="#" class="btn btn-outline-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img src="{{ url_for('static', filename='img/photographer2.jpg') }}" class="card-img-top" alt="Photographer 2">
+                    <div class="card-body">
+                        <h5 class="card-title">Photographer Name</h5>
+                        <p class="card-text">Specialty: Portraits</p>
+                        <a href="#" class="btn btn-outline-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img src="{{ url_for('static', filename='img/photographer3.jpg') }}" class="card-img-top" alt="Photographer 3">
+                    <div class="card-body">
+                        <h5 class="card-title">Photographer Name</h5>
+                        <p class="card-text">Specialty: Events</p>
+                        <a href="#" class="btn btn-outline-primary">View Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

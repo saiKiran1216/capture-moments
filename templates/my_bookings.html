@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}My Bookings - Capture Moments{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2>My Bookings</h2>
+    {% if bookings %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>{% if session.get('is_photographer') %}Client{% else %}Photographer{% endif %}</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Duration (hrs)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>
+                        {% if session.get('is_photographer') %}
+                            {{ booking.user.username }}
+                        {% else %}
+                            {{ booking.photographer.name }}
+                        {% endif %}
+                    </td>
+                    <td>{{ booking.date }}</td>
+                    <td>{{ booking.time }}</td>
+                    <td>{{ booking.duration }}</td>
+                    <td>
+                        {% if booking.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% elif booking.status == 'accepted' %}
+                            <span class="badge bg-success">Accepted</span>
+                        {% elif booking.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                            {{ booking.status|capitalize }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No bookings yet.</p>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Pricing - Capture Moments{% endblock %}
+{% block content %}
+<section class="pricing-section py-5">
+    <div class="container">
+        <h2>Our Pricing</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Basic Package</h5>
+                        <p class="card-text">Perfect for small events and portraits.</p>
+                        <ul>
+                            <li>1 hour session</li>
+                            <li>20 edited photos</li>
+                            <li>Online gallery</li>
+                        </ul>
+                        <h4>$100</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Standard Package</h5>
+                        <p class="card-text">Great for family shoots and celebrations.</p>
+                        <ul>
+                            <li>2 hour session</li>
+                            <li>50 edited photos</li>
+                            <li>Online gallery</li>
+                            <li>Print release</li>
+                        </ul>
+                        <h4>$250</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Premium Package</h5>
+                        <p class="card-text">Ideal for weddings and large events.</p>
+                        <ul>
+                            <li>5 hour session</li>
+                            <li>All edited photos</li>
+                            <li>Online gallery</li>
+                            <li>Photo album</li>
+                        </ul>
+                        <h4>$600</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="faq mt-5">
+            <h3>Frequently Asked Questions</h3>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq1">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                            How do I book a photographer?
+                        </button>
+                    </h2>
+                    <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Simply browse our photographers, select your preferred one, and click 'Book Now' to start the booking process.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq2">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                            What is included in the packages?
+                        </button>
+                    </h2>
+                    <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Each package includes a set number of hours, edited photos, and access to an online gallery. See details above.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="faq3">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                            Can I customize a package?
+                        </button>
+                    </h2>
+                    <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Yes! Contact us for custom packages tailored to your needs.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 

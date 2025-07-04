@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}About - Capture Moments{% endblock %}
+{% block content %}
+<section class="about-section py-5">
+    <div class="container">
+        <h2>About Capture Moments</h2>
+        <p>Capture Moments is dedicated to connecting clients with talented photographers for every occasion. Our mission is to make professional photography accessible, easy to book, and stress-free for everyone.</p>
+        <h3 class="mt-4">Our Team</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img src="{{ url_for('static', filename='img/team1.jpg') }}" class="card-img-top" alt="Team Member 1">
+                    <div class="card-body">
+                        <h5 class="card-title">Alex Smith</h5>
+                        <p class="card-text">Founder & Lead Photographer</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img src="{{ url_for('static', filename='img/team2.jpg') }}" class="card-img-top" alt="Team Member 2">
+                    <div class="card-body">
+                        <h5 class="card-title">Jamie Lee</h5>
+                        <p class="card-text">Operations Manager</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <img src="{{ url_for('static', filename='img/team3.jpg') }}" class="card-img-top" alt="Team Member 3">
+                    <div class="card-body">
+                        <h5 class="card-title">Taylor Kim</h5>
+                        <p class="card-text">Client Relations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 
