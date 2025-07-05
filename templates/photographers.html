@@ -1,51 +1,55 @@
-{% extends 'base.html' %}
-{% block title %}Photographers - Capture Moments{% endblock %}
-{% block content %}
-<section class="photographers-section py-5">
-    <div class="container">
-        <h2>Find Photographers</h2>
-        <form class="row g-3 mb-4" method="GET">
-            <div class="col-md-4">
-                <input type="text" class="form-control" name="search" placeholder="Search by name or specialty">
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" name="location">
-                    <option value="">All Locations</option>
-                    <!-- Add location options dynamically -->
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" name="specialty">
-                    <option value="">All Specialties</option>
-                    <!-- Add specialty options dynamically -->
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Filter</button>
-            </div>
-        </form>
-        <div class="row">
-            <!-- Photographer cards placeholder -->
-            {% for photographer in photographers %}
-            <div class="col-md-4">
-                <div class="card mb-4 shadow-sm">
-                    <img src="{{ url_for('static', filename='img/photographer_default.jpg') }}" class="card-img-top" alt="{{ photographer.name }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ photographer.name }}</h5>
-                        <p class="card-text">Specialty: {{ photographer.specialty }}</p>
-                        <p class="card-text">Location: {{ photographer.location }}</p>
-                        <p class="card-text">Price: ${{ photographer.price_per_hour }}/hr</p>
-                        <a href="{{ url_for('profile', photographer_id=photographer.id) }}" class="btn btn-outline-primary">View Profile</a>
-                        <a href="{{ url_for('booking', photographer_id=photographer.id) }}" class="btn btn-primary ms-2">Book Now</a>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="col-12">
-                <p>No photographers found.</p>
-            </div>
-            {% endfor %}
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Photographers</title>
+  <style>
+    body {
+      background-color: #f7f7f7;
+      font-family: Arial;
+      text-align: center;
+      padding: 50px;
+    }
+    .card {
+      background: white;
+      margin: 20px auto;
+      padding: 20px;
+      width: 300px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+    h3 {
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    p {
+      color: #555;
+    }
+    img {
+      margin-top: 10px;
+      border-radius: 4px;
+      width: 200px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>Available Photographers</h2>
+
+  {% for p in photographers %}
+    <div class="card">
+      <h3>{{ p['Name'] }}</h3>
+      <p><strong>ID:</strong> {{ p['photographer_id'] }}</p>
+      <p><strong>Skills:</strong> {{ p['Skills'] }}</p>
+      <p><strong>Availability:</strong> {{ p['availability'] | join(', ') }}</p>
+
+      {% if p['Photo'] %}
+        <img src="{{ p['Photo'] }}" alt="{{ p['Name'] }}">
+      {% else %}
+        <p>No image available</p>
+      {% endif %}
     </div>
-</section>
-{% endblock %} 
+  {% endfor %}
+
+  <a href="/" style="display: inline-block; margin-top: 20px;">← Back to Home</a>
+</body>
+</html> 

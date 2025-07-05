@@ -7,13 +7,34 @@ from sqlalchemy.exc import IntegrityError
 from functools import wraps
 import secrets
 from werkzeug.utils import secure_filename
+import boto3
+import uuid
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key_here'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key_here')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///capture_moments.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# AWS DynamoDB Configuration
+app.config['AWS_REGION'] = os.environ.get('AWS_REGION', 'ap-south-1')
+app.config['USE_AWS'] = os.environ.get('USE_AWS', 'false').lower() == 'true'
+
 db = SQLAlchemy(app)
+
+# Initialize DynamoDB if AWS is enabled
+if app.config['USE_AWS']:
+    try:
+        dynamodb = boto3.resource('dynamodb', region_name=app.config['AWS_REGION'])
+        photographers_table = dynamodb.Table('photographers')
+        bookings_table = dynamodb.Table('booking')
+        users_table = dynamodb.Table('users')
+        print("✅ AWS DynamoDB connected successfully!")
+    except Exception as e:
+        print(f"⚠️ AWS DynamoDB connection failed: {e}")
+        print("Falling back to SQLite database...")
+        app.config['USE_AWS'] = False
+else:
+    print("📁 Using local SQLite database")
 
 # Models
 class User(db.Model):
@@ -61,6 +82,77 @@ class Review(db.Model):
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# AWS DynamoDB Helper Functions
+def get_photographers_from_dynamodb():
+    """Get all photographers from DynamoDB"""
+    if not app.config['USE_AWS']:
+        return []
+    try:
+        response = photographers_table.scan()
+        return response.get('Items', [])
+    except Exception as e:
+        print(f"Error fetching photographers from DynamoDB: {e}")
+        return []
+
+def save_booking_to_dynamodb(user_id, photographer_id, date, time, duration, status='pending'):
+    """Save booking to DynamoDB"""
+    if not app.config['USE_AWS']:
+        return None
+    try:
+        booking_id = str(uuid.uuid4())
+        booking_item = {
+            'booking_id': booking_id,
+            'user_id': str(user_id),
+            'photographer_id': str(photographer_id),
+            'date': date,
+            'time': time,
+            'duration': duration,
+            'status': status,
+            'timestamp': datetime.now().isoformat()
+        }
+        bookings_table.put_item(Item=booking_item)
+        return booking_id
+    except Exception as e:
+        print(f"Error saving booking to DynamoDB: {e}")
+        return None
+
+def save_user_to_dynamodb(username, email, password_hash, is_photographer=False):
+    """Save user to DynamoDB"""
+    if not app.config['USE_AWS']:
+        return None
+    try:
+        user_id = str(uuid.uuid4())
+        user_item = {
+            'user_id': user_id,
+            'username': username,
+            'email': email,
+            'password_hash': password_hash,
+            'is_photographer': is_photographer,
+            'created_at': datetime.now().isoformat()
+        }
+        users_table.put_item(Item=user_item)
+        print(f"✅ User saved to DynamoDB: {username}")
+        return user_id
+    except Exception as e:
+        print(f"❌ Error saving user to DynamoDB: {e}")
+        print(f"   Username: {username}")
+        print(f"   Email: {email}")
+        return None
+
+def get_user_from_dynamodb(username):
+    """Get user from DynamoDB by username"""
+    if not app.config['USE_AWS']:
+        return None
+    try:
+        response = users_table.scan(
+            FilterExpression=boto3.dynamodb.conditions.Attr('username').eq(username)
+        )
+        items = response.get('Items', [])
+        return items[0] if items else None
+    except Exception as e:
+        print(f"Error fetching user from DynamoDB: {e}")
+        return None
+
 def login_required(role=None):
     def decorator(f):
         @wraps(f)
@@ -92,9 +184,26 @@ def home():
 
 @app.route('/photographers')
 def show_photographers():
-    # Placeholder data for demonstration
-    photographers = []
-    return render_template('photographers.html', photographers=photographers)
+    if app.config['USE_AWS']:
+        # Get photographers from DynamoDB
+        photographers = get_photographers_from_dynamodb()
+        # Convert DynamoDB format to template-compatible format
+        formatted_photographers = []
+        for p in photographers:
+            formatted_photographers.append({
+                'id': p.get('photographer_id'),
+                'name': p.get('Name', 'Unknown'),
+                'specialty': p.get('Skills', 'General'),
+                'location': p.get('Location', 'Not specified'),
+                'price_per_hour': p.get('price_per_hour', 100.0),
+                'profile_image': p.get('Photo')
+            })
+    else:
+        # Get photographers from SQLite
+        photographers = Photographer.query.all()
+        formatted_photographers = photographers
+    
+    return render_template('photographers.html', photographers=formatted_photographers)
 
 @app.route('/pricing')
 def pricing():
@@ -119,26 +228,66 @@ def profile(photographer_id):
 
 @app.route('/booking/<int:photographer_id>', methods=['GET', 'POST'])
 def booking(photographer_id):
-    photographer = Photographer.query.get_or_404(photographer_id)
+    if app.config['USE_AWS']:
+        # Get photographer from DynamoDB
+        photographers = get_photographers_from_dynamodb()
+        photographer = None
+        for p in photographers:
+            if p.get('photographer_id') == str(photographer_id):
+                photographer = {
+                    'id': p.get('photographer_id'),
+                    'name': p.get('Name', 'Unknown'),
+                    'specialty': p.get('Skills', 'General'),
+                    'location': p.get('Location', 'Not specified'),
+                    'price_per_hour': p.get('price_per_hour', 100.0),
+                    'profile_image': p.get('Photo')
+                }
+                break
+        if not photographer:
+            abort(404)
+    else:
+        # Get photographer from SQLite
+        photographer = Photographer.query.get_or_404(photographer_id)
+    
     if request.method == 'POST':
         if 'user_id' not in session:
             flash('Please log in to book a photographer.', 'warning')
             return redirect(url_for('login'))
+        
         date = request.form['date']
         time = request.form['time']
         duration = int(request.form['duration'])
-        booking = Booking(
-            user_id=session['user_id'],
-            photographer_id=photographer.id,
-            date=datetime.strptime(date, '%Y-%m-%d').date(),
-            time=datetime.strptime(time, '%H:%M').time(),
-            duration=duration,
-            status='confirmed'
-        )
-        db.session.add(booking)
-        db.session.commit()
-        flash('Booking successful!', 'success')
+        
+        if app.config['USE_AWS']:
+            # Save to DynamoDB
+            booking_id = save_booking_to_dynamodb(
+                session['user_id'], 
+                photographer_id, 
+                date, 
+                time, 
+                duration, 
+                'confirmed'
+            )
+            if booking_id:
+                flash('Booking successful!', 'success')
+            else:
+                flash('Booking failed. Please try again.', 'danger')
+        else:
+            # Save to SQLite
+            booking = Booking(
+                user_id=session['user_id'],
+                photographer_id=photographer.id,
+                date=datetime.strptime(date, '%Y-%m-%d').date(),
+                time=datetime.strptime(time, '%H:%M').time(),
+                duration=duration,
+                status='confirmed'
+            )
+            db.session.add(booking)
+            db.session.commit()
+            flash('Booking successful!', 'success')
+        
         return redirect(url_for('client_dashboard'))
+    
     return render_template('booking.html', photographer=photographer, booking=None)
 
 @app.route('/booking/<int:booking_id>/accept', methods=['POST'])
@@ -207,20 +356,44 @@ def signup():
         password = request.form['password']
         user_type = request.form.get('user_type')
         is_photographer = user_type == 'photographer'
-        user = User(username=username, email=email, is_photographer=is_photographer)
-        user.set_password(password)
-        try:
-            db.session.add(user)
-            db.session.commit()
-            if is_photographer:
-                photographer = Photographer(user_id=user.id, name=username, price_per_hour=100.0)
-                db.session.add(photographer)
+        
+        if app.config['USE_AWS']:
+            try:
+                # Check if user exists in DynamoDB
+                existing_user = get_user_from_dynamodb(username)
+                if existing_user:
+                    flash('Username or email already exists.', 'danger')
+                    return render_template('signup.html')
+                
+                # Create user in DynamoDB
+                password_hash = generate_password_hash(password)
+                user_id = save_user_to_dynamodb(username, email, password_hash, is_photographer)
+                
+                if user_id:
+                    flash('Account created successfully! Please log in.', 'success')
+                    return redirect(url_for('login'))
+                else:
+                    flash('Account creation failed. Please try again.', 'danger')
+            except Exception as e:
+                print(f"❌ Signup error: {e}")
+                flash(f'Account creation failed: {str(e)}', 'danger')
+        else:
+            # Create user in SQLite
+            user = User(username=username, email=email, is_photographer=is_photographer)
+            user.set_password(password)
+            try:
+                db.session.add(user)
                 db.session.commit()
-            flash('Account created successfully! Please log in.', 'success')
-            return redirect(url_for('login'))
-        except IntegrityError:
-            db.session.rollback()
-            flash('Username or email already exists.', 'danger')
+                if is_photographer:
+                    photographer = Photographer(user_id=user.id, name=username, price_per_hour=100.0)
+                    db.session.add(photographer)
+                    db.session.commit()
+                flash('Account created successfully! Please log in.', 'success')
+                return redirect(url_for('login'))
+            except IntegrityError:
+                db.session.rollback()
+                flash('Username or email already exists.', 'danger')
+    
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -228,18 +401,36 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            session['is_photographer'] = user.is_photographer
-            flash('Logged in successfully!', 'success')
-            if user.is_photographer:
-                return redirect(url_for('photographer_dashboard'))
+        
+        if app.config['USE_AWS']:
+            # Get user from DynamoDB
+            user_data = get_user_from_dynamodb(username)
+            if user_data and check_password_hash(user_data['password_hash'], password):
+                session['user_id'] = user_data['user_id']
+                session['username'] = user_data['username']
+                session['is_photographer'] = user_data['is_photographer']
+                flash('Logged in successfully!', 'success')
+                if user_data['is_photographer']:
+                    return redirect(url_for('photographer_dashboard'))
+                else:
+                    return redirect(url_for('client_dashboard'))
             else:
-                return redirect(url_for('client_dashboard'))
+                flash('Invalid username or password.', 'danger')
         else:
-            flash('Invalid username or password.', 'danger')
+            # Get user from SQLite
+            user = User.query.filter_by(username=username).first()
+            if user and user.check_password(password):
+                session['user_id'] = user.id
+                session['username'] = user.username
+                session['is_photographer'] = user.is_photographer
+                flash('Logged in successfully!', 'success')
+                if user.is_photographer:
+                    return redirect(url_for('photographer_dashboard'))
+                else:
+                    return redirect(url_for('client_dashboard'))
+            else:
+                flash('Invalid username or password.', 'danger')
+    
     return render_template('login.html')
 
 @app.route('/logout')
@@ -272,10 +463,55 @@ def my_bookings():
         bookings = Booking.query.filter_by(user_id=session['user_id']).all()
     return render_template('my_bookings.html', bookings=bookings)
 
+# AWS Integration Routes (similar to awsint.py)
+@app.route('/aws/book', methods=['GET', 'POST'])
+def aws_book():
+    """AWS-specific booking route (no authentication required)"""
+    if request.method == 'POST':
+        photographer_id = request.form.get('photographer_id')
+        user_id = request.form.get('user_id')
+        date = request.form.get('date')
+
+        if app.config['USE_AWS']:
+            # Create unique booking ID
+            booking_id = str(uuid.uuid4())
+            
+            # Store booking in DynamoDB
+            try:
+                bookings_table.put_item(Item={
+                    'booking_id': booking_id,
+                    'photographer_id': photographer_id,
+                    'user_id': user_id,
+                    'date': date,
+                    'timestamp': datetime.now().isoformat()
+                })
+                return f"<h2 style='color:green;'>Booking Confirmed! For {photographer_id} on {date}.</h2><a href='/'>Back to Home</a>"
+            except Exception as e:
+                return f"<h2 style='color:red;'>Booking Failed: {e}</h2><a href='/'>Back to Home</a>"
+        else:
+            return "<h2 style='color:red;'>AWS mode is disabled. Use regular booking.</h2><a href='/'>Back to Home</a>"
+
+    return render_template('book.html')
+
+@app.route('/aws/show-photographers')
+def aws_show_photographers():
+    """AWS-specific photographers route"""
+    if app.config['USE_AWS']:
+        photographers = get_photographers_from_dynamodb()
+        availability_data = {
+            p['photographer_id']: p.get('availability', []) for p in photographers
+        }
+        return render_template('photographers.html',
+                               photographers=photographers,
+                               availability_data=availability_data)
+    else:
+        flash('AWS mode is disabled. Use regular photographers page.', 'warning')
+        return redirect(url_for('show_photographers'))
+
 # --- TEMPORARY: Create all tables if they do not exist ---
 with app.app_context():
     db.create_all()
 # --- End TEMPORARY ---
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(host='0.0.0.0', port=5000, debug=True)
